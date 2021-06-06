@@ -37,14 +37,13 @@ static std::wstring description(L"RobloxLINK (v1.0)");
 static std::wstring shortname(L"RobloxLINK");
 
 static const std::wstring longdesc() {
-	return std::wstring(L"Supports Roblox without context or identity support."); // Plugin long description
+	return std::wstring(L"Supports Roblox with context and identity."); // Plugin long description
 }
 
 
 // That good good
 static int fetch(float* avatarPos, float* avatarFront, float* avatarTop, float* cameraPos, float* cameraFront, float* cameraTop, std::string& context, std::wstring& identity)
 {	
-
 	memcpy(avatarPos, pos.avPos, sizeof(pos.avPos));
 	memcpy(avatarFront, pos.avFront, sizeof(pos.avFront));
 	memcpy(avatarTop, pos.avTop, sizeof(pos.avTop));
@@ -57,14 +56,6 @@ static int fetch(float* avatarPos, float* avatarFront, float* avatarTop, float* 
 
 	// All use the same VC, just set this to satisfy mumble if it's cringe
 	identity = L"Shared";
-
-	/*std::cout << avatarFront[0] << std::endl;
-	std::cout << avatarFront[1] << std::endl;
-	std::cout << avatarFront[2] << std::endl;
-	std::cout << cameraTop[0] << std::endl;
-	std::cout << cameraTop[1] << std::endl;
-	std::cout << cameraTop[2] << std::endl;
-	std::cout << std::endl;*/
 
 	return true;
 }
@@ -94,16 +85,6 @@ void onMessage(Server* s, websocketpp::connection_hdl hdl, MessagePtr msg)
 	pos.cmPos[2] *= 0.28f;
 
 	gameID = decoded[6];
-
-	// Send data to web socket
-	/*try
-	{
-		s->send(hdl, std::to_string(pos.avPos[1]), msg->get_opcode());
-	}
-	catch (websocketpp::exception const& e)
-	{
-		std::cout << "Echo failed: " << "(" << e.what() << ")" << std::endl;
-	}*/
 }
 
 void ServerThread() {
