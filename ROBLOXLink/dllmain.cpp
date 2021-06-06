@@ -5,7 +5,7 @@
 #include <mumble/mumble_positional_audio_main.h>
 
 #include <functional>
-#include <json.hpp>
+#include <json/json.hpp>
 #include <iostream>
 #include <thread>
 #include <mutex>
