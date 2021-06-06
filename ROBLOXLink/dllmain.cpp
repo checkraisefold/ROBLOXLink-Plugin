@@ -3,6 +3,7 @@
 
 #include <mumble/mumble_legacy_plugin.h>
 #include <mumble/mumble_positional_audio_main.h>
+#include <mumble/mumble_positional_audio_utils.h>
 
 #include <json/json.hpp>
 
@@ -29,7 +30,10 @@ union positions
 	};
 };
 positions pos;
+
 INT64 gameID;
+std::string userIdent;
+
 bool initialized = false;
 bool listening = false;
 
@@ -40,8 +44,7 @@ static const std::wstring longdesc() {
 	return std::wstring(L"Supports Roblox with context and identity."); // Plugin long description
 }
 
-
-// That good good
+// Called by Mumble to fetch positional and rotational character data
 static int fetch(float* avatarPos, float* avatarFront, float* avatarTop, float* cameraPos, float* cameraFront, float* cameraTop, std::string& context, std::wstring& identity)
 {	
 	memcpy(avatarPos, pos.avPos, sizeof(pos.avPos));
@@ -54,8 +57,8 @@ static int fetch(float* avatarPos, float* avatarFront, float* avatarTop, float* 
 	// Set context so it's only for people in the same game
 	context = std::to_string(gameID);
 
-	// All use the same VC, just set this to satisfy mumble if it's cringe
-	identity = L"Shared";
+	// Set identity.
+	identity = utf8ToUtf16(userIdent);
 
 	return true;
 }
@@ -71,11 +74,12 @@ void onMessage(Server* s, websocketpp::connection_hdl hdl, MessagePtr msg)
 		return;
 	}
 
-	// Get positions and do meters conversion from studs
+	// Parse received json, write values to positions array
 	json decoded = json::parse(msg->get_payload());
 	for (int i = 0; i < 18; i++)
 		pos.values[i] = decoded[i / 3][i % 3];
 
+	// ROBLOX Studs -> Meters conversion
 	pos.avPos[0] *= 0.28f;
 	pos.avPos[1] *= 0.28f;
 	pos.avPos[2] *= 0.28f;
@@ -85,6 +89,7 @@ void onMessage(Server* s, websocketpp::connection_hdl hdl, MessagePtr msg)
 	pos.cmPos[2] *= 0.28f;
 
 	gameID = decoded[6];
+	userIdent = decoded[7];
 }
 
 void ServerThread() {
@@ -117,8 +122,7 @@ void ServerThread() {
 
 static int trylock(const std::multimap<std::wstring, unsigned long long int>& pids)
 {
-	// Initialize the values to one (cos mumble gay)
-	for (int i = 0; i < 18; i++) pos.values[i] = 1.f;
+	// Reset game ID
 	gameID = 0;
 
 	// Retrieve game executable's memory address
