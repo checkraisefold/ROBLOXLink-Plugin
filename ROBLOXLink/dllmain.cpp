@@ -4,8 +4,9 @@
 #include <mumble/mumble_legacy_plugin.h>
 #include <mumble/mumble_positional_audio_main.h>
 
-#include <functional>
 #include <json/json.hpp>
+
+#include <functional>
 #include <iostream>
 #include <thread>
 #include <mutex>
