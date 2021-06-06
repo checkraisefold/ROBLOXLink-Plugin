@@ -187,10 +187,10 @@ static inline bool sinCos(const float value, float &outSin, float &outCos) {
 }
 
 /// Converts degrees to radians.
-static inline float degreesToRadians(const float degrees) {
-	constexpr float piOver180 = M_PI / 180.0f;
-	return piOver180 * degrees;
-}
+//static inline float degreesToRadians(const float degrees) {
+	//constexpr float piOver180 = M_PI / 180.0f;
+	//return piOver180 * degrees;
+//}
 
 /// Detects whether the architecture is big-endian.
 static constexpr bool isBigEndian() {
