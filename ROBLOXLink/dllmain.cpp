@@ -1,9 +1,7 @@
 #include <websocketpp/config/asio_no_tls.hpp>
 #include <websocketpp/server.hpp>
 
-#include <mumble/mumble_legacy_plugin.h>
-#include <mumble/mumble_positional_audio_main.h>
-#include <mumble/mumble_positional_audio_utils.h>
+#include <mumble/MumblePlugin_v_1_0_x.h>
 
 #include <json/json.hpp>
 
@@ -31,34 +29,28 @@ union positions
 };
 positions pos;
 
-INT64 gameID;
+INT64 gameID = 0;
 std::string userIdent;
 
-bool initialized = false;
-bool listening = false;
-
-static std::wstring description(L"RobloxLINK (v1.0)");
-static std::wstring shortname(L"RobloxLINK");
-
-static const std::wstring longdesc() {
-	return std::wstring(L"Supports Roblox with context and identity."); // Plugin long description
-}
+struct MumbleAPI_v_1_0_x mumbleAPI;
+mumble_plugin_id_t ownID;
 
 // Called by Mumble to fetch positional and rotational character data
-static int fetch(float* avatarPos, float* avatarFront, float* avatarTop, float* cameraPos, float* cameraFront, float* cameraTop, std::string& context, std::wstring& identity)
-{	
+bool mumble_fetchPositionalData(float* avatarPos, float* avatarDir, float* avatarAxis, float* cameraPos, float* cameraDir,
+	float* cameraAxis, const char** context, const char** identity) {	
+	// Set data
 	memcpy(avatarPos, pos.avPos, sizeof(pos.avPos));
-	memcpy(avatarFront, pos.avFront, sizeof(pos.avFront));
-	memcpy(avatarTop, pos.avTop, sizeof(pos.avTop));
+	memcpy(avatarDir, pos.avFront, sizeof(pos.avFront));
+	memcpy(avatarAxis, pos.avTop, sizeof(pos.avTop));
 	memcpy(cameraPos, pos.cmPos, sizeof(pos.cmPos));
-	memcpy(cameraFront, pos.cmFront, sizeof(pos.cmFront));
-	memcpy(cameraTop, pos.cmTop, sizeof(pos.cmTop));
+	memcpy(cameraDir, pos.cmFront, sizeof(pos.cmFront));
+	memcpy(cameraAxis, pos.cmTop, sizeof(pos.cmTop));
 
 	// Set context so it's only for people in the same game
-	context = std::to_string(gameID);
+	*context = std::to_string(gameID).c_str();
 
 	// Set identity.
-	identity = utf8ToUtf16(userIdent);
+	*identity = userIdent.c_str();
 
 	return true;
 }
@@ -66,14 +58,6 @@ static int fetch(float* avatarPos, float* avatarFront, float* avatarTop, float* 
 // Define a callback to handle incoming messages
 void onMessage(Server* s, websocketpp::connection_hdl hdl, MessagePtr msg)
 {
-	// Check for command to stop listening
-	if (msg->get_payload() == "stop-listening")
-	{
-		listening = false;
-		s->stop_listening();
-		return;
-	}
-
 	// Parse received json, write values to positions array
 	json decoded = json::parse(msg->get_payload());
 	for (int i = 0; i < 18; i++)
@@ -92,7 +76,7 @@ void onMessage(Server* s, websocketpp::connection_hdl hdl, MessagePtr msg)
 	userIdent = decoded[7];
 }
 
-void ServerThread() {
+void ThreadLoop() {
 	Server posServer;
 	try {
 		// Set logging settings
@@ -120,60 +104,89 @@ void ServerThread() {
 	}
 }
 
-static int trylock(const std::multimap<std::wstring, unsigned long long int>& pids)
+uint8_t mumble_initPositionalData(const char* const *programNames, const uint64_t programPIDs, size_t programCount)
 {
-	// Reset game ID
-	gameID = 0;
+	return PDEC_OK;
+}
 
-	// Retrieve game executable's memory address
-	if (!initialize(pids, L"RobloxPlayerBeta.exe"))
-		return false;
+// Initialize websocket thread on plugin init
+mumble_error_t mumble_init(mumble_plugin_id_t pluginID) {
+	ownID = pluginID;
+	serverThread = std::thread(ThreadLoop);
 
-	if (!initialized)
-	{
-		initialized = true;
-		serverThread = std::thread(ServerThread);
+	return STATUS_OK;
+}
+
+// Join the server thread to the main thread for a clean shutdown
+void mumble_shutdown() {
+	if (serverThread.joinable()) {
+		serverThread.join();
 	}
-
-	// Check if we can get meaningful data from it
-	float apos[3], afront[3], atop[3], cpos[3], cfront[3], ctop[3];
-	std::wstring identity;
-	std::string context;
-
-	if (fetch(apos, afront, atop, cpos, cfront, ctop, context, identity))
-		return true;
-
-	generic_unlock();
-	return false;
 }
 
-static int trylock1()
-{
-	return trylock(std::multimap<std::wstring, unsigned long long int>());
+
+// Mumble boilerplate
+mumble_version_t mumble_getVersion() {
+	mumble_version_t version;
+	version.major = 2;
+	version.minor = 0;
+	version.patch = 0;
+
+	return version;
 }
 
-static MumblePlugin gameplug = {
-	MUMBLE_PLUGIN_MAGIC,
-	description,
-	shortname,
-	NULL,
-	NULL,
-	trylock1,
-	generic_unlock,
-	longdesc,
-	fetch
-};
+struct MumbleStringWrapper mumble_getAuthor() {
+	static const char* author = "checkraisefold, bonezone2001";
 
-static MumblePlugin2 gameplug2 = {
-	MUMBLE_PLUGIN_MAGIC_2,
-	MUMBLE_PLUGIN_VERSION,
-	trylock
-};
+	struct MumbleStringWrapper wrapper;
+	wrapper.data = author;
+	wrapper.size = strlen(author);
+	wrapper.needsReleasing = false;
 
-extern "C" MUMBLE_PLUGIN_EXPORT MumblePlugin * getMumblePlugin() {
-	return &gameplug;
+	return wrapper;
 }
 
-extern "C" MUMBLE_PLUGIN_EXPORT MumblePlugin2 * getMumblePlugin2() {
-	return &gameplug2;
+struct MumbleStringWrapper mumble_getDescription() {
+	static const char* description = "A plugin using a websocket server to support ROBLOX.";
+
+	struct MumbleStringWrapper wrapper;
+	wrapper.data = description;
+	wrapper.size = strlen(description);
+	wrapper.needsReleasing = false;
+
+	return wrapper;
+}
+
+struct MumbleStringWrapper mumble_getName() {
+	static const char* name = "ROBLOXLink";
+
+	struct MumbleStringWrapper wrapper;
+	wrapper.data = name;
+	wrapper.size = strlen(name);
+	wrapper.needsReleasing = false;
+
+	return wrapper;
+}
+
+
+mumble_version_t mumble_getAPIVersion() {
+	// This constant will always hold the API version  that fits the included header files
+	return MUMBLE_PLUGIN_API_VERSION;
+}
+
+void mumble_registerAPIFunctions(void* apiStruct) {
+	// Provided mumble_getAPIVersion returns MUMBLE_PLUGIN_API_VERSION, this cast will make sure
+	// that the passed pointer will be cast to the proper type
+	mumbleAPI = MUMBLE_API_CAST(apiStruct);
+}
+
+void mumble_releaseResource(const void* pointer) {
+	// As we never pass a resource to Mumble that needs releasing, this function should never
+	// get called
+	printf("Called mumble_releaseResource but expected that this never gets called -> Aborting");
+	abort();
+}
+
+uint32_t mumble_getFeatures() {
+	return FEATURE_POSITIONAL;
 }
