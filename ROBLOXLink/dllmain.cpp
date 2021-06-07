@@ -125,7 +125,12 @@ uint8_t mumble_initPositionalData(const char* const *programNames, const uint64_
 	// Check if game is open
 	for (int i = 0; i < programCount; i++) {
 		if (strcmp(programNames[i], "RobloxPlayerBeta.exe") == 0) {
+			// Initialize handle and check whether or not it's valid
 			robloxProcHandle = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, static_cast<DWORD>(programPIDs[i]));
+			if (robloxProcHandle == NULL) {
+				return MUMBLE_PDEC_ERROR_TEMP;
+			}
+
 			serverThread = std::thread(ThreadLoop);
 
 			return MUMBLE_PDEC_OK;
