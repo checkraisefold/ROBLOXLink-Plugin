@@ -110,7 +110,7 @@ uint8_t mumble_initPositionalData(const char* const *programNames, const uint64_
 	return PDEC_OK;
 }
 
-// Empty, for now
+// Empty for now
 void mumble_shutdownPositionalData() {
 }
 
