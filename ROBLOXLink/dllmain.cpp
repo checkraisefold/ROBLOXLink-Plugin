@@ -32,7 +32,6 @@ positions pos;
 INT64 gameID = 0;
 std::string userIdent;
 
-struct MumbleAPI_v_1_0_x mumbleAPI;
 mumble_plugin_id_t ownID;
 
 Server posServer;
@@ -152,7 +151,7 @@ struct MumbleStringWrapper mumble_getAuthor() {
 }
 
 struct MumbleStringWrapper mumble_getDescription() {
-	static const char* description = "A plugin using a websocket server to support ROBLOX.";
+	static const char* description = "A plugin using a websocket server to support ROBLOX. Context and identity are supported.";
 
 	struct MumbleStringWrapper wrapper;
 	wrapper.data = description;
@@ -179,18 +178,9 @@ mumble_version_t mumble_getAPIVersion() {
 	return MUMBLE_PLUGIN_API_VERSION;
 }
 
-void mumble_registerAPIFunctions(void* apiStruct) {
-	// Provided mumble_getAPIVersion returns MUMBLE_PLUGIN_API_VERSION, this cast will make sure
-	// that the passed pointer will be cast to the proper type
-	mumbleAPI = MUMBLE_API_CAST(apiStruct);
-}
+void mumble_registerAPIFunctions(void* apiStruct) { }
 
-void mumble_releaseResource(const void* pointer) {
-	// As we never pass a resource to Mumble that needs releasing, this function should never
-	// get called
-	printf("Called mumble_releaseResource but expected that this never gets called -> Aborting");
-	abort();
-}
+void mumble_releaseResource(const void* pointer) { }
 
 uint32_t mumble_getFeatures() {
 	return FEATURE_POSITIONAL;
