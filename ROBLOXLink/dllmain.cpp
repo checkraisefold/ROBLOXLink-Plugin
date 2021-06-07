@@ -29,7 +29,8 @@ union positions
 };
 positions pos;
 
-INT64 gameID = 0;
+INT64 gameID;
+std::string userContext;
 std::string userIdent;
 
 mumble_plugin_id_t ownID;
@@ -62,7 +63,8 @@ bool mumble_fetchPositionalData(float* avatarPos, float* avatarDir, float* avata
 	memcpy(cameraAxis, pos.cmTop, sizeof(pos.cmTop));
 
 	// Set context so it's only for people in the same game
-	*context = std::to_string(gameID).c_str();
+	userContext = std::to_string(gameID);
+	*context = userContext.c_str();
 
 	// Set identity.
 	*identity = userIdent.c_str();
