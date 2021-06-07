@@ -36,6 +36,8 @@ mumble_plugin_id_t ownID;
 
 Server posServer;
 
+uint64_t robloxPid;
+
 // Called by Mumble to fetch positional and rotational character data
 bool mumble_fetchPositionalData(float* avatarPos, float* avatarDir, float* avatarAxis, float* cameraPos, float* cameraDir,
 	float* cameraAxis, const char** context, const char** identity) {	
@@ -104,9 +106,9 @@ void ThreadLoop() {
 	}
 }
 
-uint8_t mumble_initPositionalData(const char* const *programNames, const uint64_t programPIDs, size_t programCount)
+uint8_t mumble_initPositionalData(const char* const *programNames, const uint64_t *programPIDs, size_t programCount)
 {
-	return PDEC_OK;
+	return MUMBLE_PDEC_OK;
 }
 
 // Empty for now
@@ -117,7 +119,7 @@ mumble_error_t mumble_init(mumble_plugin_id_t pluginID) {
 	ownID = pluginID;
 	serverThread = std::thread(ThreadLoop);
 
-	return STATUS_OK;
+	return MUMBLE_STATUS_OK;
 }
 
 // Join the server thread to the main thread for a clean shutdown
@@ -183,5 +185,5 @@ void mumble_registerAPIFunctions(void* apiStruct) { }
 void mumble_releaseResource(const void* pointer) { }
 
 uint32_t mumble_getFeatures() {
-	return FEATURE_POSITIONAL;
+	return MUMBLE_FEATURE_POSITIONAL;
 }
