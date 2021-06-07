@@ -35,6 +35,8 @@ std::string userIdent;
 struct MumbleAPI_v_1_0_x mumbleAPI;
 mumble_plugin_id_t ownID;
 
+Server posServer;
+
 // Called by Mumble to fetch positional and rotational character data
 bool mumble_fetchPositionalData(float* avatarPos, float* avatarDir, float* avatarAxis, float* cameraPos, float* cameraDir,
 	float* cameraAxis, const char** context, const char** identity) {	
@@ -77,7 +79,6 @@ void onMessage(Server* s, websocketpp::connection_hdl hdl, MessagePtr msg)
 }
 
 void ThreadLoop() {
-	Server posServer;
 	try {
 		// Set logging settings
 		posServer.set_access_channels(websocketpp::log::alevel::all);
@@ -107,6 +108,10 @@ void ThreadLoop() {
 uint8_t mumble_initPositionalData(const char* const *programNames, const uint64_t programPIDs, size_t programCount)
 {
 	return PDEC_OK;
+}
+
+// Empty, for now
+void mumble_shutdownPositionalData() {
 }
 
 // Initialize websocket thread on plugin init
