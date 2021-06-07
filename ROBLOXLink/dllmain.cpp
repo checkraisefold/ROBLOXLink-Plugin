@@ -36,11 +36,23 @@ mumble_plugin_id_t ownID;
 
 Server posServer;
 
-uint64_t robloxPid;
+HANDLE robloxProcHandle;
 
 // Called by Mumble to fetch positional and rotational character data
 bool mumble_fetchPositionalData(float* avatarPos, float* avatarDir, float* avatarAxis, float* cameraPos, float* cameraDir,
 	float* cameraAxis, const char** context, const char** identity) {	
+	// Check if ROBLOX is still open
+	DWORD code = 0;
+	if (GetExitCodeProcess(robloxProcHandle, &code) == 0) {
+		CloseHandle(robloxProcHandle);
+		return false;
+	}
+
+	if (code != STILL_ACTIVE) {
+		CloseHandle(robloxProcHandle);
+		return false;
+	}
+
 	// Set data
 	memcpy(avatarPos, pos.avPos, sizeof(pos.avPos));
 	memcpy(avatarDir, pos.avFront, sizeof(pos.avFront));
@@ -108,27 +120,36 @@ void ThreadLoop() {
 
 uint8_t mumble_initPositionalData(const char* const *programNames, const uint64_t *programPIDs, size_t programCount)
 {
-	return MUMBLE_PDEC_OK;
+	// Check if game is open
+	for (int i = 0; i < programCount; i++) {
+		if (strcmp(programNames[i], "RobloxPlayerBeta.exe") == 0) {
+			robloxProcHandle = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, static_cast<DWORD>(programPIDs[i]));
+			serverThread = std::thread(ThreadLoop);
+
+			return MUMBLE_PDEC_OK;
+		}
+	}
+
+	return MUMBLE_PDEC_ERROR_TEMP;
 }
 
-// Empty for now
-void mumble_shutdownPositionalData() { }
-
-// Initialize websocket thread on plugin init
-mumble_error_t mumble_init(mumble_plugin_id_t pluginID) {
-	ownID = pluginID;
-	serverThread = std::thread(ThreadLoop);
-
-	return MUMBLE_STATUS_OK;
-}
-
-// Join the server thread to the main thread for a clean shutdown
-void mumble_shutdown() {
+// Stop the websocket listening and join the thread
+void mumble_shutdownPositionalData() { 
 	posServer.stop_listening();
 	if (serverThread.joinable()) {
 		serverThread.join();
 	}
 }
+
+// Initialize websocket thread on plugin init
+mumble_error_t mumble_init(mumble_plugin_id_t pluginID) {
+	ownID = pluginID;
+
+	return MUMBLE_STATUS_OK;
+}
+
+// We don't need to do anything on shutdown
+void mumble_shutdown() { }
 
 
 // Mumble boilerplate
