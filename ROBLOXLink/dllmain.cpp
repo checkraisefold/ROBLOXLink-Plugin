@@ -111,8 +111,7 @@ uint8_t mumble_initPositionalData(const char* const *programNames, const uint64_
 }
 
 // Empty for now
-void mumble_shutdownPositionalData() {
-}
+void mumble_shutdownPositionalData() { }
 
 // Initialize websocket thread on plugin init
 mumble_error_t mumble_init(mumble_plugin_id_t pluginID) {
