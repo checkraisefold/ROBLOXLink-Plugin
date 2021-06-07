@@ -124,6 +124,7 @@ mumble_error_t mumble_init(mumble_plugin_id_t pluginID) {
 
 // Join the server thread to the main thread for a clean shutdown
 void mumble_shutdown() {
+	posServer.stop_listening();
 	if (serverThread.joinable()) {
 		serverThread.join();
 	}
