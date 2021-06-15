@@ -1,5 +1,6 @@
 #include <websocketpp/config/asio_no_tls.hpp>
 #include <websocketpp/server.hpp>
+#include <websocketpp/connection.hpp>
 
 #include <mumble/MumblePlugin_v_1_0_x.h>
 
@@ -33,9 +34,11 @@ INT64 gameID;
 std::string userContext;
 std::string userIdent;
 
+struct MumbleAPI_v_1_0_x mumbleAPI;
 mumble_plugin_id_t ownID;
 
 Server posServer;
+std::vector<std::shared_ptr<Server::connection_type>> connections;
 
 HANDLE robloxProcHandle;
 
@@ -43,7 +46,13 @@ HANDLE robloxProcHandle;
 bool mumble_fetchPositionalData(float* avatarPos, float* avatarDir, float* avatarAxis, float* cameraPos, float* cameraDir,
 	float* cameraAxis, const char** context, const char** identity) {	
 	// Check if ROBLOX is still open
-	if (GetProcessId(robloxProcHandle) == 0) {
+	DWORD code = 0;
+	if (GetExitCodeProcess(robloxProcHandle, &code) == 0) {
+		CloseHandle(robloxProcHandle);
+		return false;
+	}
+
+	if (code != STILL_ACTIVE) {
 		CloseHandle(robloxProcHandle);
 		return false;
 	}
@@ -69,6 +78,9 @@ bool mumble_fetchPositionalData(float* avatarPos, float* avatarDir, float* avata
 // Define a callback to handle incoming messages
 void onMessage(Server* s, websocketpp::connection_hdl hdl, MessagePtr msg)
 {
+	// Store connection
+	connections.push_back(s->get_con_from_hdl(hdl));
+
 	// Parse received json, write values to positions array
 	json decoded = json::parse(msg->get_payload());
 	for (int i = 0; i < 18; i++)
@@ -125,6 +137,18 @@ uint8_t mumble_initPositionalData(const char* const *programNames, const uint64_
 				return MUMBLE_PDEC_ERROR_TEMP;
 			}
 
+			// Check if ROBLOX is still open
+			DWORD code = 0;
+			if (GetExitCodeProcess(robloxProcHandle, &code) == 0) {
+				CloseHandle(robloxProcHandle);
+				return MUMBLE_PDEC_ERROR_TEMP;
+			}
+
+			if (code != STILL_ACTIVE) {
+				CloseHandle(robloxProcHandle);
+				return MUMBLE_PDEC_ERROR_TEMP;
+			}
+
 			serverThread = std::thread(ThreadLoop);
 
 			return MUMBLE_PDEC_OK;
@@ -136,9 +160,15 @@ uint8_t mumble_initPositionalData(const char* const *programNames, const uint64_
 
 // Stop the websocket listening and join the thread
 void mumble_shutdownPositionalData() { 
+	// Cleanly stop the websocket server
 	posServer.stop_listening();
+	for (auto& connection : connections) {
+		connection->close(1000, "Server shutdown");
+	}
+
 	if (serverThread.joinable()) {
 		serverThread.join();
+		mumbleAPI.log(ownID, "i love america");
 	}
 }
 
@@ -202,7 +232,7 @@ mumble_version_t mumble_getAPIVersion() {
 	return MUMBLE_PLUGIN_API_VERSION;
 }
 
-void mumble_registerAPIFunctions(void* apiStruct) { }
+void mumble_registerAPIFunctions(void* apiStruct) { mumbleAPI = MUMBLE_API_CAST(apiStruct); }
 
 void mumble_releaseResource(const void* pointer) { }
 
