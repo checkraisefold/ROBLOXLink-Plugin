@@ -159,6 +159,7 @@ void mumble_shutdownPositionalData() {
 	for (auto& connection : connections) {
 		connection->close(1000, "Server shutdown");
 	}
+	connections.clear();
 
 	if (serverThread.joinable()) {
 		serverThread.join();
