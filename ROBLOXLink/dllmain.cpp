@@ -97,20 +97,12 @@ void onMessage(Server* s, websocketpp::connection_hdl hdl, MessagePtr msg)
 
 	gameID = decoded[6];
 	userIdent = decoded[7];
+
+	s->send(hdl, std::to_string(pos.avPos[1]), msg->get_opcode());
 }
 
-void ThreadLoop() {
+void threadLoop() {
 	try {
-		// Set logging settings
-		posServer.set_access_channels(websocketpp::log::alevel::all);
-		posServer.clear_access_channels(websocketpp::log::alevel::frame_payload);
-
-		// Initialize ASIO
-		posServer.init_asio();
-
-		// Register our message handler
-		posServer.set_message_handler(bind(&onMessage, &posServer, ::_1, ::_2));
-
 		// Listen on port 9002
 		posServer.listen(9002);
 
@@ -121,6 +113,8 @@ void ThreadLoop() {
 		posServer.run();
 	}
 	catch (websocketpp::exception const& e) {
+		std::string logMsg = "Websocket thread error (MAKE A GITHUB ISSUE): ";
+		mumbleAPI.log(ownID, (logMsg + e.m_msg).c_str());
 	}
 	catch (...) {
 	}
@@ -149,7 +143,7 @@ uint8_t mumble_initPositionalData(const char* const *programNames, const uint64_
 				return MUMBLE_PDEC_ERROR_TEMP;
 			}
 
-			serverThread = std::thread(ThreadLoop);
+			serverThread = std::thread(threadLoop);
 
 			return MUMBLE_PDEC_OK;
 		}
@@ -168,13 +162,32 @@ void mumble_shutdownPositionalData() {
 
 	if (serverThread.joinable()) {
 		serverThread.join();
-		mumbleAPI.log(ownID, "i love america");
 	}
 }
 
-// Initialize websocket thread on plugin init
+// Plugin initialization routine
 mumble_error_t mumble_init(mumble_plugin_id_t pluginID) {
+	// Set plugin ID
 	ownID = pluginID;
+
+	// Initialize websocket server
+	try {
+		// Set logging settings
+		posServer.set_access_channels(websocketpp::log::alevel::all);
+		posServer.clear_access_channels(websocketpp::log::alevel::frame_payload);
+
+		// Initialize ASIO
+		posServer.init_asio();
+
+		// Register our message handler
+		posServer.set_message_handler(bind(&onMessage, &posServer, ::_1, ::_2));
+	}
+	catch (websocketpp::exception const& e) {
+		std::string logMsg = "Plugin init error (MAKE A GITHUB ISSUE): ";
+		mumbleAPI.log(ownID, (logMsg + e.m_msg).c_str());
+	}
+	catch (...) {
+	}
 
 	return MUMBLE_STATUS_OK;
 }
@@ -228,11 +241,15 @@ struct MumbleStringWrapper mumble_getName() {
 
 
 mumble_version_t mumble_getAPIVersion() {
-	// This constant will always hold the API version  that fits the included header files
+	// This constant will always hold the API version that fits the included header files
 	return MUMBLE_PLUGIN_API_VERSION;
 }
 
-void mumble_registerAPIFunctions(void* apiStruct) { mumbleAPI = MUMBLE_API_CAST(apiStruct); }
+void mumble_registerAPIFunctions(void* apiStruct) { 
+	// Provided mumble_getAPIVersion returns MUMBLE_PLUGIN_API_VERSION, this cast will make sure
+	// that the passed pointer will be cast to the proper type
+	mumbleAPI = MUMBLE_API_CAST(apiStruct); 
+}
 
 void mumble_releaseResource(const void* pointer) { }
 
