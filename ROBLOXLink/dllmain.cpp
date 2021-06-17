@@ -10,6 +10,7 @@
 #include <iostream>
 #include <thread>
 #include <mutex>
+#include <set>
 
 using Server = websocketpp::server<websocketpp::config::asio>;
 using MessagePtr = Server::message_ptr;
@@ -38,7 +39,7 @@ struct MumbleAPI_v_1_0_x mumbleAPI;
 mumble_plugin_id_t ownID;
 
 Server posServer;
-std::vector<std::shared_ptr<Server::connection_type>> connections;
+std::set<websocketpp::connection_hdl, std::owner_less<websocketpp::connection_hdl>> connections;
 
 HANDLE robloxProcHandle;
 
@@ -79,7 +80,7 @@ bool mumble_fetchPositionalData(float* avatarPos, float* avatarDir, float* avata
 void onMessage(Server* s, websocketpp::connection_hdl hdl, MessagePtr msg)
 {
 	// Store connection
-	connections.push_back(s->get_con_from_hdl(hdl));
+	connections.emplace(hdl);
 
 	// Parse received json, write values to positions array
 	json decoded = json::parse(msg->get_payload());
@@ -157,7 +158,15 @@ void mumble_shutdownPositionalData() {
 	// Cleanly stop the websocket server
 	posServer.stop_listening();
 	for (auto& connection : connections) {
-		connection->close(1000, "Server shutdown");
+		try {
+			posServer.get_con_from_hdl(connection)->close(1000, "Server shutdown");
+		}
+		catch (websocketpp::exception const& e) {
+			std::string logMsg = "Connection closure error (MAKE A GITHUB ISSUE): ";
+			mumbleAPI.log(ownID, (logMsg + e.m_msg).c_str());
+		}
+		catch (...) {
+		}
 	}
 	connections.clear();
 
