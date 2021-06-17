@@ -47,7 +47,13 @@ HANDLE robloxProcHandle;
 bool mumble_fetchPositionalData(float* avatarPos, float* avatarDir, float* avatarAxis, float* cameraPos, float* cameraDir,
 	float* cameraAxis, const char** context, const char** identity) {	
 	// Check if ROBLOX is still open
-	if (GetProcessId(robloxProcHandle) == 0) {
+	DWORD code = 0;
+	if (GetExitCodeProcess(robloxProcHandle, &code) == 0) {
+		CloseHandle(robloxProcHandle);
+		return false;
+	}
+
+	if (code != STILL_ACTIVE) {
 		CloseHandle(robloxProcHandle);
 		return false;
 	}
