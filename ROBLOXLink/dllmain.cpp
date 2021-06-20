@@ -88,13 +88,10 @@ void onMessage(Server* s, websocketpp::connection_hdl hdl, MessagePtr msg)
 		pos.values[i] = decoded[i / 3][i % 3];
 
 	// ROBLOX Studs -> Meters conversion
-	pos.avPos[0] *= 0.28f;
-	pos.avPos[1] *= 0.28f;
-	pos.avPos[2] *= 0.28f;
-
-	pos.cmPos[0] *= 0.28f;
-	pos.cmPos[1] *= 0.28f;
-	pos.cmPos[2] *= 0.28f;
+	for (int i = 0; i < 3; i++) {
+		pos.avPos[i] *= 0.28f;
+		pos.cmPos[i] *= 0.28f;
+	}
 
 	gameID = decoded[6];
 	userIdent = decoded[7];
