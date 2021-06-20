@@ -117,8 +117,6 @@ void threadLoop() {
 		std::string logMsg = "Websocket thread error (MAKE A GITHUB ISSUE): ";
 		mumbleAPI.log(ownID, (logMsg + e.m_msg).c_str());
 	}
-	catch (...) {
-	}
 }
 
 uint8_t mumble_initPositionalData(const char* const *programNames, const uint64_t *programPIDs, size_t programCount)
@@ -161,12 +159,7 @@ void mumble_shutdownPositionalData() {
 		try {
 			posServer.get_con_from_hdl(connection)->close(1000, "Server shutdown");
 		}
-		catch (websocketpp::exception const& e) {
-			std::string logMsg = "Connection closure error (MAKE A GITHUB ISSUE): ";
-			mumbleAPI.log(ownID, (logMsg + e.m_msg).c_str());
-		}
-		catch (...) {
-		}
+		catch (websocketpp::exception const& e) { }
 	}
 	connections.clear();
 
@@ -195,8 +188,6 @@ mumble_error_t mumble_init(mumble_plugin_id_t pluginID) {
 	catch (websocketpp::exception const& e) {
 		std::string logMsg = "Plugin init error (MAKE A GITHUB ISSUE): ";
 		mumbleAPI.log(ownID, (logMsg + e.m_msg).c_str());
-	}
-	catch (...) {
 	}
 
 	return MUMBLE_STATUS_OK;
