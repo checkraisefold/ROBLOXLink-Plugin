@@ -100,32 +100,22 @@ void onMessage(Server* s, websocketpp::connection_hdl hdl, MessagePtr msg)
 
 void threadLoop() {
 	try {
-		if (!initializedServerBefore) {
-			// Flip variable
-			initializedServerBefore = true;
-
-			// Listen on port 9002
-			posServer.listen(9002);
-
-			// Start the server accept loop
-			posServer.start_accept();
-
-			// Start the ASIO io_service run loop
-			posServer.run();
+		// If we've started this thread before, prepare the asio io_service loop to run again
+		if (initializedServerBefore) {
+			posServer.get_io_service().restart();
 		}
 		else {
-			// Prepare io_service to run again
-			posServer.get_io_service().restart();
-
-			// Listen on port 9002
-			posServer.listen(9002);
-
-			// Start the server accept loop
-			posServer.start_accept();
-
-			// Start the ASIO io_service run loop
-			posServer.run();
+			initializedServerBefore = true;
 		}
+
+		// Listen on port 9002
+		posServer.listen(9002);
+
+		// Start the server accept loop
+		posServer.start_accept();
+
+		// Start the ASIO io_service run loop
+		posServer.run();
 	}
 	catch (websocketpp::exception const& e) {
 		std::string logMsg = "Websocket thread error (MAKE A GITHUB ISSUE): ";
