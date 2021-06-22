@@ -96,8 +96,6 @@ void onMessage(Server* s, websocketpp::connection_hdl hdl, MessagePtr msg)
 
 	gameID = decoded[6];
 	userIdent = decoded[7];
-
-	s->send(hdl, std::to_string(pos.avPos[1]), msg->get_opcode());
 }
 
 void threadLoop() {
