@@ -122,6 +122,9 @@ void threadLoop() {
 			// Listen on port 9002
 			posServer.listen(9002);
 
+			// Start the server accept loop
+			posServer.start_accept();
+
 			// Start the ASIO io_service run loop
 			posServer.run();
 		}
@@ -168,6 +171,8 @@ uint8_t mumble_initPositionalData(const char* const *programNames, const uint64_
 void mumble_shutdownPositionalData() { 
 	// Cleanly stop the websocket server
 	posServer.stop_listening();
+
+	// End all connections
 	for (auto& connection : connections) {
 		try {
 			posServer.get_con_from_hdl(connection)->close(1000, "Server shutdown");
@@ -176,6 +181,7 @@ void mumble_shutdownPositionalData() {
 	}
 	connections.clear();
 
+	// Join server thread to main thread
 	if (serverThread.joinable()) {
 		serverThread.join();
 	}
