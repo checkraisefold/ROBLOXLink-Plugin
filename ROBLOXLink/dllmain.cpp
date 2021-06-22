@@ -40,6 +40,7 @@ mumble_plugin_id_t ownID;
 
 Server posServer;
 std::set<websocketpp::connection_hdl, std::owner_less<websocketpp::connection_hdl>> connections;
+bool initializedServerBefore = false;
 
 HANDLE robloxProcHandle;
 
@@ -101,14 +102,29 @@ void onMessage(Server* s, websocketpp::connection_hdl hdl, MessagePtr msg)
 
 void threadLoop() {
 	try {
-		// Listen on port 9002
-		posServer.listen(9002);
+		if (!initializedServerBefore) {
+			// Flip variable
+			initializedServerBefore = true;
 
-		// Start the server accept loop
-		posServer.start_accept();
+			// Listen on port 9002
+			posServer.listen(9002);
 
-		// Start the ASIO io_service run loop
-		posServer.run();
+			// Start the server accept loop
+			posServer.start_accept();
+
+			// Start the ASIO io_service run loop
+			posServer.run();
+		}
+		else {
+			// Prepare io_service to run again
+			posServer.get_io_service().restart();
+
+			// Listen on port 9002
+			posServer.listen(9002);
+
+			// Start the ASIO io_service run loop
+			posServer.run();
+		}
 	}
 	catch (websocketpp::exception const& e) {
 		std::string logMsg = "Websocket thread error (MAKE A GITHUB ISSUE): ";
