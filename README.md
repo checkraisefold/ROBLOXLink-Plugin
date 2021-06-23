@@ -1,4 +1,4 @@
-# ROBLOXLink-Plugin
+# ROBLOXLink
 A Mumble plugin that receives positional and rotational data from a websocket. Designed for a ROBLOX script executed with a scripting utility.
 The client Lua script will be released on Github shortly.
 
