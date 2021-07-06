@@ -160,11 +160,13 @@ void mumble_shutdownPositionalData() {
 	posServer.stop_listening();
 
 	// End all connections
-	for (auto& connection : connections) {
-		try {
-			posServer.get_con_from_hdl(connection)->close(1000, "Server shutdown");
+	for (auto& connection_hdl : connections) {
+		auto connection = posServer.get_con_from_hdl(connection_hdl);
+
+		// Make sure connection is open before closing it
+		if (connection->get_state() == websocketpp::session::state::open) {
+			connection->close(websocketpp::close::status::normal, "Server shutdown");
 		}
-		catch (websocketpp::exception const& e) { }
 	}
 	connections.clear();
 
