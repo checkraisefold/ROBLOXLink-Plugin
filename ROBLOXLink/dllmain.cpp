@@ -210,7 +210,7 @@ mumble_version_t mumble_getVersion() {
 	mumble_version_t version;
 	version.major = 2;
 	version.minor = 0;
-	version.patch = 0;
+	version.patch = 1;
 
 	return version;
 }
