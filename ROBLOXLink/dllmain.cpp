@@ -28,8 +28,7 @@ union positions
 	struct {
 		float avPos[3], avFront[3], avTop[3], cmPos[3], cmFront[3], cmTop[3];
 	};
-};
-positions pos;
+} pos;
 
 INT64 gameID;
 std::string userContext;
