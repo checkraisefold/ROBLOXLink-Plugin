@@ -159,7 +159,7 @@ void mumble_shutdownPositionalData() {
 	// Cleanly stop the websocket server
 	posServer.stop_listening();
 
-	// End all connections
+	// Close all connections
 	for (auto& connection_hdl : connections) {
 		auto connection = posServer.get_con_from_hdl(connection_hdl);
 
