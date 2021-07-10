@@ -84,11 +84,11 @@ void onMessage(Server* s, websocketpp::connection_hdl hdl, MessagePtr msg)
 
 	// Parse received json, write values to positions array
 	json decoded = json::parse(msg->get_payload());
-	for (int i = 0; i < 18; i++)
+	for (int i = 0; i < 18; ++i)
 		pos.values[i] = decoded[i / 3][i % 3];
 
 	// ROBLOX Studs -> Meters conversion
-	for (int i = 0; i < 3; i++) {
+	for (int i = 0; i < 3; ++i) {
 		pos.avPos[i] *= 0.28f;
 		pos.cmPos[i] *= 0.28f;
 	}
@@ -125,7 +125,7 @@ void threadLoop() {
 uint8_t mumble_initPositionalData(const char* const *programNames, const uint64_t *programPIDs, size_t programCount)
 {
 	// Check if game is open
-	for (int i = 0; i < programCount; i++) {
+	for (int i = 0; i < programCount; ++i) {
 		if (strcmp(programNames[i], "RobloxPlayerBeta.exe") == 0) {
 			// Initialize handle and check whether or not it's valid
 			robloxProcHandle = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, static_cast<DWORD>(programPIDs[i]));
