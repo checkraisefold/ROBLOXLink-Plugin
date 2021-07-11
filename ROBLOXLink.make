@@ -53,12 +53,12 @@ ifeq ($(origin AR), default)
   AR = ar
 endif
 TARGETDIR = bin/Debug
-TARGET = $(TARGETDIR)/libROBLOXLink.dylib
+TARGET = $(TARGETDIR)/libROBLOXLink.bundle
 OBJDIR = obj/Mac64/Debug
 DEFINES += -DDEBUG -DOS_UNIX -D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS -DASIO_STANDALONE
 ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -fPIC -g
 ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -fPIC -g
-ALL_LDFLAGS += $(LDFLAGS) -m64 -dynamiclib -Wl,-install_name,@rpath/libROBLOXLink.dylib
+ALL_LDFLAGS += $(LDFLAGS) -m64 -bundle -Wl,-install_name,@rpath/libROBLOXLink.bundle
 
 else ifeq ($(config),release_linux64)
 RESCOMP = windres
@@ -81,12 +81,12 @@ ifeq ($(origin AR), default)
   AR = ar
 endif
 TARGETDIR = bin/Release
-TARGET = $(TARGETDIR)/libROBLOXLink.dylib
+TARGET = $(TARGETDIR)/libROBLOXLink.bundle
 OBJDIR = obj/Mac64/Release
 DEFINES += -DNDEBUG -DOS_UNIX -D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS -DASIO_STANDALONE
 ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -O2 -fPIC
 ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -O2 -fPIC
-ALL_LDFLAGS += $(LDFLAGS) -m64 -dynamiclib -Wl,-install_name,@rpath/libROBLOXLink.dylib
+ALL_LDFLAGS += $(LDFLAGS) -m64 -bundle -Wl,-install_name,@rpath/libROBLOXLink.bundle
 
 endif
 
