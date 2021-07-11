@@ -3,14 +3,13 @@
 #include <websocketpp/connection.hpp>
 
 #include <mumble/MumblePlugin_v_1_0_x.h>
-
 #include <json/json.hpp>
 
-#include <functional>
-#include <iostream>
-#include <thread>
-#include <mutex>
 #include <set>
+
+#ifdef OS_UNIX
+	#include <unistd.h>
+#endif
 
 using Server = websocketpp::server<websocketpp::config::asio>;
 using MessagePtr = Server::message_ptr;
@@ -30,7 +29,7 @@ union positions
 	};
 } pos;
 
-INT64 gameID;
+uint64_t gameID;
 std::string userContext;
 std::string userIdent;
 
@@ -41,40 +40,11 @@ Server posServer;
 std::set<websocketpp::connection_hdl, std::owner_less<websocketpp::connection_hdl>> connections;
 bool initializedServerBefore = false;
 
-HANDLE robloxProcHandle;
-
-// Called by Mumble to fetch positional and rotational character data
-bool mumble_fetchPositionalData(float* avatarPos, float* avatarDir, float* avatarAxis, float* cameraPos, float* cameraDir,
-	float* cameraAxis, const char** context, const char** identity) {	
-	// Check if ROBLOX is still open
-	DWORD code = 0;
-	if (GetExitCodeProcess(robloxProcHandle, &code) == 0) {
-		CloseHandle(robloxProcHandle);
-		return false;
-	}
-
-	if (code != STILL_ACTIVE) {
-		CloseHandle(robloxProcHandle);
-		return false;
-	}
-
-	// Set data
-	memcpy(avatarPos, pos.avPos, sizeof(pos.avPos));
-	memcpy(avatarDir, pos.avFront, sizeof(pos.avFront));
-	memcpy(avatarAxis, pos.avTop, sizeof(pos.avTop));
-	memcpy(cameraPos, pos.cmPos, sizeof(pos.cmPos));
-	memcpy(cameraDir, pos.cmFront, sizeof(pos.cmFront));
-	memcpy(cameraAxis, pos.cmTop, sizeof(pos.cmTop));
-
-	// Set context so it's only for people in the same game
-	userContext = std::to_string(gameID);
-	*context = userContext.c_str();
-
-	// Set identity.
-	*identity = userIdent.c_str();
-
-	return true;
-}
+#ifdef OS_UNIX
+	uint64_t robloxPid;
+#else
+	HANDLE robloxProcHandle;
+#endif
 
 // Define a callback to handle incoming messages
 void onMessage(Server* s, websocketpp::connection_hdl hdl, MessagePtr msg)
@@ -122,25 +92,63 @@ void threadLoop() {
 	}
 }
 
+bool gameRunning() {
+#ifdef OS_UNIX
+	if (getpgid(m_pid) >= 0) {
+		return false;
+	}
+#else
+	DWORD code = 0;
+	if (GetExitCodeProcess(robloxProcHandle, &code) == 0) {
+		CloseHandle(robloxProcHandle);
+		return false;
+	}
+
+	if (code != STILL_ACTIVE) {
+		CloseHandle(robloxProcHandle);
+		return false;
+	}
+#endif
+	return true;
+}
+
+// Called by Mumble to fetch positional and rotational character data
+bool mumble_fetchPositionalData(float* avatarPos, float* avatarDir, float* avatarAxis, float* cameraPos, float* cameraDir,
+	float* cameraAxis, const char** context, const char** identity) {	
+	// Set data
+	memcpy(avatarPos, pos.avPos, sizeof(pos.avPos));
+	memcpy(avatarDir, pos.avFront, sizeof(pos.avFront));
+	memcpy(avatarAxis, pos.avTop, sizeof(pos.avTop));
+	memcpy(cameraPos, pos.cmPos, sizeof(pos.cmPos));
+	memcpy(cameraDir, pos.cmFront, sizeof(pos.cmFront));
+	memcpy(cameraAxis, pos.cmTop, sizeof(pos.cmTop));
+
+	// Set context so it's only for people in the same game
+	userContext = std::to_string(gameID);
+	*context = userContext.c_str();
+
+	// Set identity.
+	*identity = userIdent.c_str();
+
+	// Stop fetching if game is closed
+	return gameRunning();
+}
+
 uint8_t mumble_initPositionalData(const char* const *programNames, const uint64_t *programPIDs, size_t programCount)
 {
 	// Check if game is open
 	for (int i = 0; i < programCount; ++i) {
 		if (strcmp(programNames[i], "RobloxPlayerBeta.exe") == 0) {
 			// Initialize handle and check whether or not it's valid
-			robloxProcHandle = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, static_cast<DWORD>(programPIDs[i]));
-			if (robloxProcHandle == NULL) {
-				return MUMBLE_PDEC_ERROR_TEMP;
-			}
+			#ifndef OS_UNIX
+				robloxProcHandle = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, static_cast<DWORD>(programPIDs[i]));
+				if (robloxProcHandle == NULL) {
+					return MUMBLE_PDEC_ERROR_TEMP;
+				}
+#			endif 
 
 			// Check if ROBLOX is still open
-			DWORD code = 0;
-			if (GetExitCodeProcess(robloxProcHandle, &code) == 0) {
-				CloseHandle(robloxProcHandle);
-				return MUMBLE_PDEC_ERROR_TEMP;
-			}
-
-			if (code != STILL_ACTIVE) {
+			if (!gameRunning()) {
 				CloseHandle(robloxProcHandle);
 				return MUMBLE_PDEC_ERROR_TEMP;
 			}
