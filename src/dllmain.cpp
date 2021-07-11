@@ -94,7 +94,7 @@ void threadLoop() {
 
 bool gameRunning() {
 #ifdef OS_UNIX
-	if (getpgid(m_pid) >= 0) {
+	if (getpgid(robloxPid) >= 0) {
 		return false;
 	}
 #else
@@ -140,7 +140,9 @@ uint8_t mumble_initPositionalData(const char* const *programNames, const uint64_
 	for (int i = 0; i < programCount; ++i) {
 		if (strcmp(programNames[i], "RobloxPlayerBeta.exe") == 0) {
 			// Initialize handle and check whether or not it's valid
-			#ifndef OS_UNIX
+			#ifdef OS_UNIX
+				robloxPid = programPIDs[i];
+			#else
 				robloxProcHandle = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, static_cast<DWORD>(programPIDs[i]));
 				if (robloxProcHandle == NULL) {
 					return MUMBLE_PDEC_ERROR_TEMP;
@@ -149,7 +151,9 @@ uint8_t mumble_initPositionalData(const char* const *programNames, const uint64_
 
 			// Check if ROBLOX is still open
 			if (!gameRunning()) {
-				CloseHandle(robloxProcHandle);
+				#ifndef OS_UNIX
+					CloseHandle(robloxProcHandle);
+				#endif
 				return MUMBLE_PDEC_ERROR_TEMP;
 			}
 
