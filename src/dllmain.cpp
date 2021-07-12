@@ -232,7 +232,7 @@ mumble_error_t mumble_init(mumble_plugin_id_t pluginID)
 	}
 	catch (const websocketpp::exception& e)
 	{
-		std::string logMsg = "Plugin init error (MAKE A GITHUB ISSUE): ";
+		const std::string logMsg = "Plugin init error (MAKE A GITHUB ISSUE): ";
 		mumbleApi.log(ownId, (logMsg + e.m_msg).c_str());
 	}
 
