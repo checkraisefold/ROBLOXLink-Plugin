@@ -47,7 +47,7 @@ std::thread serverThread;
 #ifdef OS_UNIX
 	uint64_t robloxPid;
 #else
-HANDLE robloxProcHandle;
+	HANDLE robloxProcHandle;
 #endif
 
 // Define a callback to handle incoming messages
