@@ -244,7 +244,6 @@ void mumble_shutdown()
 {
 }
 
-
 // Mumble boilerplate
 mumble_version_t mumble_getVersion()
 {
