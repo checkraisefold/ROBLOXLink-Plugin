@@ -149,7 +149,7 @@ bool mumble_fetchPositionalData(float* avatarPos, float* avatarDir, float* avata
 	return gameRunning();
 }
 
-uint8_t mumble_initPositionalData(const char* const * programNames, const uint64_t* programPIDs, size_t programCount)
+uint8_t mumble_initPositionalData(const char* const * programNames, const uint64_t* programPIDs, const size_t programCount)
 {
 	// Check if game is open
 	for (int i = 0; i < programCount; ++i)
