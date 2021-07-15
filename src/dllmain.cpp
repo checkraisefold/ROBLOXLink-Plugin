@@ -165,7 +165,7 @@ uint8_t mumble_initPositionalData(const char* const * programNames, const uint64
 			{
 				return MUMBLE_PDEC_ERROR_TEMP;
 			}
-#			endif
+#endif
 
 			// Check if ROBLOX is still open
 			if (!gameRunning())
