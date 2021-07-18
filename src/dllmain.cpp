@@ -8,10 +8,11 @@
 #include <functional>
 #include <thread>
 #include <set>
+#include <regex>
 #ifdef OS_UNIX
 	#include <unistd.h>
 #else
-	#include <windows.h>
+#include <windows.h>
 #endif
 
 using Server = websocketpp::server<websocketpp::config::asio>;
@@ -47,7 +48,7 @@ std::thread serverThread;
 #ifdef OS_UNIX
 	uint64_t robloxPid;
 #else
-	HANDLE robloxProcHandle;
+HANDLE robloxProcHandle;
 #endif
 
 // Define a callback to handle incoming messages
@@ -149,12 +150,16 @@ bool mumble_fetchPositionalData(float* avatarPos, float* avatarDir, float* avata
 	return gameRunning();
 }
 
-uint8_t mumble_initPositionalData(const char* const * programNames, const uint64_t* programPIDs, const size_t programCount)
+uint8_t mumble_initPositionalData(const char* const * programNames, const uint64_t* programPIDs,
+                                  const size_t programCount)
 {
+	// Instantiate regex pattern
+	std::regex matchRoblox("^RobloxPlayerBeta(\\.\\w+)?$", std::regex_constants::icase);
+
 	// Check if game is open
 	for (int i = 0; i < programCount; ++i)
 	{
-		if (strcmp(programNames[i], "RobloxPlayerBeta.exe") == 0)
+		if (std::regex_match(programNames[i], matchRoblox))
 		{
 			// Initialize handle and check whether or not it's valid
 #ifdef OS_UNIX
