@@ -5,11 +5,12 @@
 #include <mumble/MumblePlugin_v_1_0_x.h>
 #include <json/json.hpp>
 
+#include <string_view>
 #include <functional>
 #include <thread>
 #include <set>
 #ifdef OS_UNIX
-	#include <unistd.h>
+#include <unistd.h>
 #else
 #include <windows.h>
 #endif
@@ -155,7 +156,7 @@ uint8_t mumble_initPositionalData(const char* const * programNames, const uint64
 	// Check if game is open
 	for (int i = 0; i < programCount; ++i)
 	{
-		if (strcmp(programNames[i], "RobloxPlayerBeta") == 0 || strstr(programNames[i], "RobloxPlayerBeta.") != nullptr)
+		if (std::string_view(programNames[i]).find("RobloxPlayerBeta"))
 		{
 			// Initialize handle and check whether or not it's valid
 #ifdef OS_UNIX
