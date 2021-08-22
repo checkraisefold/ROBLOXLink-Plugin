@@ -364,3 +364,9 @@ FodyWeavers.xsd
 
 # Premake
 premake5.exe
+
+# Solution files (gen with premake)
+Makefile
+ROBLOXLink.make
+ROBLOXLink.sln
+ROBLOXLink.vcxproj
