@@ -1,0 +1,55 @@
+name: Windows Build
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+env:
+  # Path to the solution file relative to the root of the project.
+  SOLUTION_FILE_PATH: .
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    strategy:
+      matrix:
+        configuration: [Release, Debug]
+        
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v1.0.2
+      
+    - name: Setup Premake
+      uses: checkraisefold/setup-premake@v2.0
+      with:
+        version: 5.0.0-alpha16
+        
+    - name: Run Premake
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      run: |
+        premake5 vs2019
+
+    - name: Build binaries
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      # Add additional options to the MSBuild command line here (like platform or verbosity level).
+      # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
+      run: msbuild /m /p:Configuration=${{matrix.configuration}} ${{env.SOLUTION_FILE_PATH}}
+      
+    - name: Upload release
+      uses: actions/upload-artifact@v2.2.4
+      with:
+        name: ROBLOXLink.dll
+        path: bin/Release/ROBLOXLink.dll
+      if: ${{ matrix.configuration == 'Release' }}
+        
+    - name: Upload debug
+      uses: actions/upload-artifact@v2.2.4
+      with:
+        name: debug_ROBLOXLink.dll
+        path: bin/Debug/ROBLOXLink.dll
+      if: ${{ matrix.configuration == 'Debug' }}
