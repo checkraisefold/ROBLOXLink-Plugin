@@ -32,11 +32,11 @@ jobs:
     - name: Run Premake
       working-directory: ${{env.GITHUB_WORKSPACE}}
       run: |
-        premake5 gmake2
+        premake5 vs2019
 
     - name: Restore NuGet packages
       working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: nuget restore ../
+      run: nuget restore
 
     - name: Build binaries
       working-directory: ${{env.GITHUB_WORKSPACE}}
