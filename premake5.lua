@@ -14,7 +14,7 @@ workspace "ROBLOXLink"
 
     filter "Release"
         defines { "NDEBUG" }
-        optimize "On"
+        optimize "Speed"
 		
 	filter "platforms:*64"
 		architecture "x86_64"
