@@ -13,8 +13,14 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: configure
-      run: ./configure
+    - name: setup premake
+      uses: checkraisefold/setup-premake@v2.0
+      with:
+        version: v5.0.0-alpha16
+    - name: run premake
+      run: |
+        cd $GITHUB_WORKSPACE
+        premake gmake2
     - name: build binaries
       run: |
         make config=release_linux64
@@ -29,4 +35,3 @@ jobs:
       with:
         name: debug_libROBLOXLink.so
         path: bin/Debug/libROBLOXLink.so
-      
