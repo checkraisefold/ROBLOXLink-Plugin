@@ -39,4 +39,4 @@ jobs:
       uses: actions/upload-artifact@v2.2.4
       with:
         name: debug_ROBLOXLink.dylibd
-        path: bin/Debug/ROBLOXLink.dylib
+        path: bin/Debug/libROBLOXLink.dylib
