@@ -33,6 +33,7 @@ workspace "ROBLOXLink"
 project "ROBLOXLink"
     kind "SharedLib"
     language "C++"
+	cppdialect "C++17"
     targetdir "bin/%{cfg.buildcfg}"
 	includedirs { "libraries" }
 	defines { "_CRT_SECURE_NO_WARNINGS", "_SCL_SECURE_NO_WARNINGS", "ASIO_STANDALONE" }
