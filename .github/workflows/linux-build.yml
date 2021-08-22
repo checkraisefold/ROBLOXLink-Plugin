@@ -1,0 +1,32 @@
+name: Linux Build
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: configure
+      run: ./configure
+    - name: build binaries
+      run: |
+        make config=release_linux64
+        make config=debug_linux64
+    - name: upload release
+      uses: actions/upload-artifact@v2.2.4
+      with:
+        name: libROBLOXLink.so
+        path: bin/Release/libROBLOXLink.so
+    - name: upload debug
+      uses: actions/upload-artifact@v2.2.4
+      with:
+        name: debug_libROBLOXLink.so
+        path: bin/Debug/libROBLOXLink.so
+      
