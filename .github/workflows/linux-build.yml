@@ -20,7 +20,7 @@ jobs:
     - name: run premake
       run: |
         cd $GITHUB_WORKSPACE
-        premake gmake2
+        premake5 gmake2
     - name: build binaries
       run: |
         make config=release_linux64
