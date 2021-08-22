@@ -49,11 +49,11 @@ jobs:
       with:
         name: ROBLOXLink.dll
         path: bin/Release/ROBLOXLink.dll
-      if: ${{ matrix.configuration == Release }}
+      if: ${{ matrix.configuration == 'Release' }}
         
     - name: Upload debug
       uses: actions/upload-artifact@v2.2.4
       with:
         name: debug_ROBLOXLink.dll
         path: bin/Debug/ROBLOXLink.dll
-      if: ${{ matrix.configuration == Debug }}
+      if: ${{ matrix.configuration == 'Debug' }}
