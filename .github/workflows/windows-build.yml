@@ -34,10 +34,6 @@ jobs:
       run: |
         premake5 vs2019
 
-    - name: Restore NuGet packages
-      working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: nuget restore
-
     - name: Build binaries
       working-directory: ${{env.GITHUB_WORKSPACE}}
       # Add additional options to the MSBuild command line here (like platform or verbosity level).
