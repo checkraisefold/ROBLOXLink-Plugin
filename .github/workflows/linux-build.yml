@@ -14,9 +14,9 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: setup premake
-      uses: checkraisefold/setup-premake@v2.0_debug3
+      uses: checkraisefold/setup-premake@v2.0
       with:
-        version: v5.0.0-alpha16
+        version: 5.0.0-alpha16
     - name: run premake
       run: |
         cd $GITHUB_WORKSPACE
