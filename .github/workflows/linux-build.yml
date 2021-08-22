@@ -14,7 +14,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: setup premake
-      uses: checkraisefold/setup-premake@v2.0_debug2
+      uses: checkraisefold/setup-premake@v2.0_debug3
       with:
         version: v5.0.0-alpha16
     - name: run premake
