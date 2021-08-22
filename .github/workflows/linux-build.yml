@@ -19,11 +19,12 @@ jobs:
         version: 5.0.0-alpha16
         
     - name: Run Premake
+      working-directory: ${{env.GITHUB_WORKSPACE}}
       run: |
-        cd $GITHUB_WORKSPACE
         premake5 gmake2
         
     - name: Build binaries
+      working-directory: ${{env.GITHUB_WORKSPACE}}
       run: |
         make config=release_linux64
         make config=debug_linux64
