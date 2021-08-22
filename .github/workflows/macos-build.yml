@@ -32,11 +32,11 @@ jobs:
     - name: Upload release
       uses: actions/upload-artifact@v2.2.4
       with:
-        name: ROBLOXLink.bundle
-        path: bin/Release/ROBLOXLink.bundle
+        name: ROBLOXLink.so
+        path: bin/Release/ROBLOXLink.so
         
     - name: Upload debug
       uses: actions/upload-artifact@v2.2.4
       with:
-        name: debug_ROBLOXLink.bundle
-        path: bin/Debug/ROBLOXLink.bundle
+        name: debug_ROBLOXLink.so
+        path: bin/Debug/ROBLOXLink.so
