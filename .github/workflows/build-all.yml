@@ -65,13 +65,13 @@ jobs:
     - name: Upload release
       uses: actions/upload-artifact@v2.2.4
       with:
-        name: ROBLOXLink.dylib
+        name: libROBLOXLink.dylib
         path: bin/Release/libROBLOXLink.dylib
         
     - name: Upload debug
       uses: actions/upload-artifact@v2.2.4
       with:
-        name: debug_ROBLOXLink.dylib
+        name: debug_libROBLOXLink.dylib
         path: bin/Debug/libROBLOXLink.dylib
  build-windows:
     runs-on: windows-latest
