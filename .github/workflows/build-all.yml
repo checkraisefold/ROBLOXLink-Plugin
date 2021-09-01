@@ -1,0 +1,112 @@
+name: Build
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+ build-linux:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Setup Premake
+      uses: checkraisefold/setup-premake@v2.0
+      with:
+        version: 5.0.0-alpha16
+        
+    - name: Run Premake
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      run: |
+        premake5 gmake2
+        
+    - name: Build binaries
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      run: |
+        make config=release_linux64
+        make config=debug_linux64
+        
+    - name: Upload release
+      uses: actions/upload-artifact@v2.2.4
+      with:
+        name: libROBLOXLink.so
+        path: bin/Release/libROBLOXLink.so
+        
+    - name: Upload debug
+      uses: actions/upload-artifact@v2.2.4
+      with:
+        name: debug_libROBLOXLink.so
+        path: bin/Debug/libROBLOXLink.so
+ build-macos:
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Setup Premake
+      uses: checkraisefold/setup-premake@v2.0
+      with:
+        version: 5.0.0-alpha16
+        
+    - name: Run Premake
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      run: |
+        premake5 gmake2
+        
+    - name: Build binaries
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      run: |
+        make config=release_mac64
+        make config=debug_mac64
+        
+    - name: Upload release
+      uses: actions/upload-artifact@v2.2.4
+      with:
+        name: ROBLOXLink.dylib
+        path: bin/Release/libROBLOXLink.dylib
+        
+    - name: Upload debug
+      uses: actions/upload-artifact@v2.2.4
+      with:
+        name: debug_ROBLOXLink.dylib
+        path: bin/Debug/libROBLOXLink.dylib
+ build-windows:
+    runs-on: windows-latest
+        
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v1.0.2
+      
+    - name: Setup Premake
+      uses: checkraisefold/setup-premake@v2.0
+      with:
+        version: 5.0.0-alpha16
+        
+    - name: Run Premake
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      run: |
+        premake5 vs2019
+    - name: Build binaries
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      # Add additional options to the MSBuild command line here (like platform or verbosity level).
+      # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
+      run: |
+        msbuild /m /p:Configuration=Release .
+        msbuild /m /p:Configuration=Debug .
+      
+    - name: Upload release
+      uses: actions/upload-artifact@v2.2.4
+      with:
+        name: ROBLOXLink.dll
+        path: bin/Release/ROBLOXLink.dll
+        
+    - name: Upload debug
+      uses: actions/upload-artifact@v2.2.4
+      with:
+        name: debug_ROBLOXLink.dll
+        path: bin/Debug/ROBLOXLink.dll
